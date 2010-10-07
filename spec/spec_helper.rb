@@ -9,4 +9,6 @@ Spec::Runner.configure do |config|
   config.mock_with :mocha
 end
 
+def fixture_file(filename)
+  File.read(File.join(File.dirname(__FILE__), "fixtures", filename))
 end

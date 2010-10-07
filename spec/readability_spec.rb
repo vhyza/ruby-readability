@@ -18,6 +18,25 @@ describe Readability do
     HTML
   end
 
+  describe "page encoding" do
+    before do
+      @html_utf8 = fixture_file("sample.html")
+      @html_cp1250 = fixture_file("sample_cp1250.html")
+    end
+
+    it "should convert file if encoding is different than utf8" do
+      Readability::Document.any_instance.expects(:convert_to_utf8)
+      doc = Readability::Document.new(@html_cp1250)
+      doc.charset.should == "windows-1250"
+    end
+
+    it "should not convert file if encoding is utf8" do
+      Readability::Document.any_instance.expects(:convert_to_utf8).never
+      doc = Readability::Document.new(@html_utf8)
+      doc.charset.should == "utf-8"
+    end
+  end
+
   describe "transformMisusedDivsIntoParagraphs" do
     before do
       @doc = Readability::Document.new(@simple_html_fixture)

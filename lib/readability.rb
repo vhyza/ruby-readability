@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'nokogiri'
+require 'iconv'
 
 module Readability
   class Document
@@ -15,11 +16,22 @@ module Readability
 
     def initialize(input, options = {})
       @input = input.gsub(REGEXES[:replaceBrsRe], '</p><p>').gsub(REGEXES[:replaceFontsRe], '<\1span>')
+
+      convert_to_utf8 if charset !~ /^utf-*8$/i
       @options = DEFAULT_OPTIONS.merge(options)
       @remove_unlikely_candidates = @options[:remove_unlikely_candidates]
       @weight_classes = @options[:weight_classes]
       @clean_conditionally = @options[:clean_conditionally]
       make_html
+    end
+
+    def convert_to_utf8
+      i = Iconv.new("UTF-8", charset)
+      @input = i.iconv(@input)
+    end
+
+    def charset
+      @charset ||= @input.match(/(<meta\s*([^>]*)http-equiv=['"]?content-type['"]?([^>]*))/i)[0].match(/charset=([\w-]*)/i)[1] rescue "utf-8"
     end
 
     def make_html
@@ -124,6 +136,7 @@ module Readability
     end
 
     def score_paragraphs(min_text_length)
+
       candidates = {}
       @html.css("p,td").each do |elem|
         parent_node = elem.parent
@@ -176,7 +189,6 @@ module Readability
           weight += 25
         end
       end
-
       weight
     end
 
